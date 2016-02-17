@@ -1,6 +1,7 @@
 module Board where
 
 import Control.Monad (guard)
+import Data.Char (digitToInt, isDigit)
 import qualified Data.Map as M
 import Data.Maybe (fromJust)
 import Text.Read (readMaybe)
@@ -63,9 +64,33 @@ data Position = Position
 
 piecesToBoard :: String -> Maybe Board
 piecesToBoard str = do
-  let ranks = splitBy '/' str
-  guard $ length ranks == 8
-  undefined
+  ranks <- sequence $ processRank <$> splitBy '/' str
+  guard $ length ranks == 8 && all ((== 8) . length) ranks
+  let annRanks = [[((f,r), p) | (f,p) <- zip [FileA ..] ps] | (r,ps) <- zip [Rank8, Rank7 ..] ranks]
+  return $ Board $ flip M.lookup $ foldl f M.empty annRanks
+  where f :: M.Map Square Piece -> [(Square, Maybe Piece)]  -> M.Map Square Piece
+        f = foldl (\m (s, mp) -> maybe m (\p -> M.insert s p m) mp)
+
+processRank :: String -> Maybe [Maybe Piece]
+processRank = sequence . concatMap
+   (\c -> if isDigit c
+            then replicate (digitToInt c) $ Just Nothing
+            else [Just <$> charToPiece c])
+
+charToPiece :: Char -> Maybe Piece
+charToPiece 'p' = Just $ Piece Pawn Black
+charToPiece 'n' = Just $ Piece Knight Black
+charToPiece 'b' = Just $ Piece Bishop Black
+charToPiece 'r' = Just $ Piece Rook Black
+charToPiece 'q' = Just $ Piece Queen Black
+charToPiece 'k' = Just $ Piece King Black
+charToPiece 'P' = Just $ Piece Pawn White
+charToPiece 'N' = Just $ Piece Knight White
+charToPiece 'B' = Just $ Piece Bishop White
+charToPiece 'R' = Just $ Piece Rook White
+charToPiece 'Q' = Just $ Piece Queen White
+charToPiece 'K' = Just $ Piece King White
+charToPiece _   = Nothing
 
 boardToPieces :: Board -> String
 boardToPieces = undefined
