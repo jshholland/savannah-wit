@@ -19,6 +19,7 @@ library
   exposed-modules:     Board
                      , Util
   build-depends:       base >= 4.7 && < 5
+                     , containers >= 0.5 && < 1
   default-language:    Haskell2010
 
 executable savannah-wit
