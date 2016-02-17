@@ -74,25 +74,25 @@ fenToPos :: String -> Maybe Position
 fenToPos str = do
   let w = words str
   guard $ length w == 6
-  let [pieces, toMove', castling', enPassant', halfMoves', fullMoves'] = w
-  toMove <- case toMove' of
-              "w" -> Just White
-              "b" -> Just Black
-              _   -> Nothing
-  enPassant <- case enPassant' of
-                 "-" -> Just Nothing
-                 s   -> Just <$> readSquare s
-  halfMoves <- readMaybe halfMoves'
-  fullMoves <- readMaybe fullMoves'
-  board <- piecesToBoard pieces
-  castling <- pure castling'
+  let [b, t, c, ep, h, f] = w
+  t' <- case t of
+          "w" -> Just White
+          "b" -> Just Black
+          _   -> Nothing
+  ep' <- case ep of
+           "-" -> Just Nothing
+           s   -> Just <$> readSquare s
+  h' <- readMaybe h
+  f' <- readMaybe f
+  b' <- piecesToBoard b
+  c' <- pure c
   return Position
-    { board     = board
-    , toMove    = toMove
-    , castling  = castling
-    , enPassant = enPassant
-    , halfMoves = halfMoves
-    , fullMoves = fullMoves
+    { board     = b'
+    , toMove    = t'
+    , castling  = c'
+    , enPassant = ep'
+    , halfMoves = h'
+    , fullMoves = f'
     }
 
 posToFen :: Position -> String
