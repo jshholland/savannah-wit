@@ -1,7 +1,8 @@
 module Board where
 
 import Control.Monad (guard)
-import Data.Char (digitToInt, isDigit)
+import Data.Char (digitToInt, intToDigit, isDigit)
+import Data.List (intersperse)
 import qualified Data.Map as M
 import Data.Maybe (fromJust)
 import Text.Read (readMaybe)
@@ -36,6 +37,16 @@ readRank '7' = Just Rank7
 readRank '8' = Just Rank8
 readRank _   = Nothing
 
+showRank :: Rank -> Char
+showRank Rank1 = '1'
+showRank Rank2 = '2'
+showRank Rank3 = '3'
+showRank Rank4 = '4'
+showRank Rank5 = '5'
+showRank Rank6 = '6'
+showRank Rank7 = '7'
+showRank Rank8 = '8'
+
 readFile' :: Char -> Maybe File
 readFile' 'a' = Just FileA
 readFile' 'b' = Just FileB
@@ -47,9 +58,22 @@ readFile' 'g' = Just FileG
 readFile' 'h' = Just FileH
 readFile' _   = Nothing
 
+showFile :: File -> Char
+showFile FileA = 'a'
+showFile FileB = 'b'
+showFile FileC = 'c'
+showFile FileD = 'd'
+showFile FileE = 'e'
+showFile FileF = 'f'
+showFile FileG = 'g'
+showFile FileH = 'h'
+
 readSquare :: String -> Maybe Square
 readSquare [f,r] = (,) <$> readFile' f <*> readRank r
 readSquare _     = Nothing
+
+showSquare :: Square -> String
+showSquare (f,r) = [showFile f, showRank r]
 
 newtype Board = Board { getPiece :: Square -> Maybe Piece }
 
@@ -78,22 +102,33 @@ processRank = sequence . concatMap
             else [Just <$> charToPiece c])
 
 charToPiece :: Char -> Maybe Piece
-charToPiece 'p' = Just $ Piece Pawn Black
+charToPiece 'p' = Just $ Piece Pawn   Black
 charToPiece 'n' = Just $ Piece Knight Black
 charToPiece 'b' = Just $ Piece Bishop Black
-charToPiece 'r' = Just $ Piece Rook Black
-charToPiece 'q' = Just $ Piece Queen Black
-charToPiece 'k' = Just $ Piece King Black
-charToPiece 'P' = Just $ Piece Pawn White
+charToPiece 'r' = Just $ Piece Rook   Black
+charToPiece 'q' = Just $ Piece Queen  Black
+charToPiece 'k' = Just $ Piece King   Black
+charToPiece 'P' = Just $ Piece Pawn   White
 charToPiece 'N' = Just $ Piece Knight White
 charToPiece 'B' = Just $ Piece Bishop White
-charToPiece 'R' = Just $ Piece Rook White
-charToPiece 'Q' = Just $ Piece Queen White
-charToPiece 'K' = Just $ Piece King White
+charToPiece 'R' = Just $ Piece Rook   White
+charToPiece 'Q' = Just $ Piece Queen  White
+charToPiece 'K' = Just $ Piece King   White
 charToPiece _   = Nothing
 
-boardToPieces :: Board -> String
-boardToPieces = undefined
+pieceToChar :: Piece -> Char
+pieceToChar (Piece Pawn   Black) = 'p'
+pieceToChar (Piece Knight Black) = 'n'
+pieceToChar (Piece Bishop Black) = 'b'
+pieceToChar (Piece Rook   Black) = 'r'
+pieceToChar (Piece Queen  Black) = 'q'
+pieceToChar (Piece King   Black) = 'k'
+pieceToChar (Piece Pawn   White) = 'P'
+pieceToChar (Piece Knight White) = 'N'
+pieceToChar (Piece Bishop White) = 'B'
+pieceToChar (Piece Rook   White) = 'R'
+pieceToChar (Piece Queen  White) = 'Q'
+pieceToChar (Piece King   White) = 'K'
 
 fenToPos :: String -> Maybe Position
 fenToPos str = do
@@ -121,7 +156,34 @@ fenToPos str = do
     }
 
 posToFen :: Position -> String
-posToFen pos = undefined
+posToFen pos = unwords
+  [ boardToPieces $ board pos
+  , case toMove pos of
+      Black -> "b"
+      White -> "w"
+  , castling pos
+  , maybe "-" showSquare $ enPassant pos
+  , show $ halfMoves pos
+  , show $ fullMoves pos
+  ]
+
+rankToString :: Board -> Rank -> String
+rankToString b r = foldNums $ maybe '1' pieceToChar <$>
+  [getPiece b (f,r) | f <- [FileA .. FileH]]
+
+boardToPieces :: Board -> String
+boardToPieces b = concat . intersperse "/" $
+  rankToString b <$> [Rank8, Rank7 .. Rank1]
+
+foldNums :: String -> String
+foldNums = foldr combine ""
+  where combine :: Char -> String -> String
+        combine c [] = [c]
+        combine c (c':cs) | isDigit c 
+                            && isDigit c'   = c +$ c' : cs
+                          | otherwise       = c:c':cs
+        (+$) :: Char -> Char -> Char
+        c +$ c' = intToDigit $ digitToInt c + digitToInt c'
 
 start :: Position
 start = fromJust $ fenToPos "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
