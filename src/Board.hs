@@ -2,7 +2,7 @@ module Board where
 
 import Control.Monad (guard)
 import Data.Char (digitToInt, intToDigit, isDigit)
-import Data.List (intersperse)
+import Data.List (intercalate)
 import qualified Data.Map as M
 import Data.Maybe (fromJust)
 import Text.Read (readMaybe)
@@ -172,7 +172,7 @@ rankToString b r = foldNums $ maybe '1' pieceToChar <$>
   [getPiece b (f,r) | f <- [FileA .. FileH]]
 
 boardToPieces :: Board -> String
-boardToPieces b = concat . intersperse "/" $
+boardToPieces b = intercalate "/" $
   rankToString b <$> [Rank8, Rank7 .. Rank1]
 
 foldNums :: String -> String
