@@ -91,9 +91,9 @@ piecesToBoard str = do
   ranks <- sequence $ processRank <$> splitBy '/' str
   guard $ length ranks == 8 && all ((== 8) . length) ranks
   let annRanks = [[((f,r), p) | (f,p) <- zip [FileA ..] ps] | (r,ps) <- zip [Rank8, Rank7 ..] ranks]
-  return $ Board $ flip M.lookup $ foldl f M.empty annRanks
-  where f :: M.Map Square Piece -> [(Square, Maybe Piece)]  -> M.Map Square Piece
-        f = foldl (\m (s, mp) -> maybe m (\p -> M.insert s p m) mp)
+  return $ Board $ flip M.lookup $ foldl g M.empty annRanks
+  where g :: M.Map Square Piece -> [(Square, Maybe Piece)]  -> M.Map Square Piece
+        g = foldl (\m (s, mp) -> maybe m (\p -> M.insert s p m) mp)
 
 processRank :: String -> Maybe [Maybe Piece]
 processRank = sequence . concatMap
@@ -179,7 +179,7 @@ foldNums :: String -> String
 foldNums = foldr combine ""
   where combine :: Char -> String -> String
         combine c [] = [c]
-        combine c (c':cs) | isDigit c 
+        combine c (c':cs) | isDigit c
                             && isDigit c'   = c +$ c' : cs
                           | otherwise       = c:c':cs
         (+$) :: Char -> Char -> Char
