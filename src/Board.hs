@@ -1,4 +1,17 @@
-module Board where
+module Board
+  ( Piece(..)
+  , PieceType(..)
+  , Colour(..)
+  , Rank(..)
+  , File(..)
+  , Square
+  , Board(..)
+  , Position(..)
+  , fenToPos
+  , posToFen
+  , start
+  )
+  where
 
 import Control.Monad (guard)
 import Data.Char (digitToInt, intToDigit, isDigit)
