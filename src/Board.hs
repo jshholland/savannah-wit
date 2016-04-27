@@ -10,6 +10,7 @@ module Board
   , fenToPos
   , posToFen
   , start
+  , pieces
   )
   where
 
@@ -17,7 +18,7 @@ import Control.Monad (guard)
 import Data.Char (digitToInt, intToDigit, isDigit)
 import Data.List (intercalate)
 import qualified Data.Map as M
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, mapMaybe)
 import Text.Read (readMaybe)
 
 import Util (splitBy)
@@ -200,3 +201,7 @@ foldNums = foldr combine ""
 
 start :: Position
 start = fromJust $ fenToPos "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
+pieces :: Board -> [Piece]
+pieces b = mapMaybe (getPiece b) [(f,r) | f <- [FileA .. FileH],
+                                          r <- [Rank1 .. Rank8]]
