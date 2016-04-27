@@ -34,9 +34,9 @@ data Piece = Piece
   } deriving (Show, Eq)
 
 data Rank = Rank1 | Rank2 | Rank3 | Rank4 | Rank5 | Rank6 | Rank7 | Rank8
-  deriving (Show, Eq, Enum, Ord)
+  deriving (Show, Eq, Enum, Ord, Bounded)
 data File = FileA | FileB | FileC | FileD | FileE | FileF | FileG | FileH
-  deriving (Show, Eq, Enum, Ord)
+  deriving (Show, Eq, Enum, Ord, Bounded)
 
 type Square = (File, Rank)
 
@@ -104,7 +104,7 @@ piecesToBoard :: String -> Maybe Board
 piecesToBoard str = do
   ranks <- sequence $ processRank <$> splitBy '/' str
   guard $ length ranks == 8 && all ((== 8) . length) ranks
-  let annRanks = [[((f,r), p) | (f,p) <- zip [FileA ..] ps] | (r,ps) <- zip [Rank8, Rank7 ..] ranks]
+  let annRanks = [[((f,r), p) | (f,p) <- zip [minBound ..] ps] | (r,ps) <- zip [maxBound, pred maxBound ..] ranks]
   return $ Board $ flip M.lookup $ foldl g M.empty annRanks
   where g :: M.Map Square Piece -> [(Square, Maybe Piece)]  -> M.Map Square Piece
         g = foldl (\m (s, mp) -> maybe m (\p -> M.insert s p m) mp)
@@ -183,11 +183,11 @@ posToFen pos = unwords
 
 rankToString :: Board -> Rank -> String
 rankToString b r = foldNums $ maybe '1' pieceToChar <$>
-  [getPiece b (f,r) | f <- [FileA .. FileH]]
+  [getPiece b (f,r) | f <- [minBound .. maxBound]]
 
 boardToPieces :: Board -> String
 boardToPieces b = intercalate "/" $
-  rankToString b <$> [Rank8, Rank7 .. Rank1]
+  rankToString b <$> [maxBound, pred maxBound .. minBound]
 
 foldNums :: String -> String
 foldNums = foldr combine ""
@@ -203,7 +203,7 @@ start :: Position
 start = fromJust $ fenToPos "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 pieces :: Board -> [(Square, Piece)]
-pieces b = mapMaybe getPceSq [(f,r) | f <- [FileA .. FileH],
-                                      r <- [Rank1 .. Rank8]]
+pieces b = mapMaybe getPceSq [(f,r) | f <- [minBound .. maxBound],
+                                      r <- [minBound .. maxBound]]
   where getPceSq :: Square -> Maybe (Square, Piece)
         getPceSq sq = (,) sq <$> getPiece b sq
