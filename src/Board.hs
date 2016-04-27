@@ -202,6 +202,8 @@ foldNums = foldr combine ""
 start :: Position
 start = fromJust $ fenToPos "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
-pieces :: Board -> [Piece]
-pieces b = mapMaybe (getPiece b) [(f,r) | f <- [FileA .. FileH],
-                                          r <- [Rank1 .. Rank8]]
+pieces :: Board -> [(Square, Piece)]
+pieces b = mapMaybe getPceSq [(f,r) | f <- [FileA .. FileH],
+                                      r <- [Rank1 .. Rank8]]
+  where getPceSq :: Square -> Maybe (Square, Piece)
+        getPceSq sq = (,) sq <$> getPiece b sq
