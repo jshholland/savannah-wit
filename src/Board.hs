@@ -7,9 +7,10 @@ module Board
   , Square
   , Board(..)
   , Position(..)
+  , Move(..)
   , fenToPos
   , posToFen
-  , start
+  , start, kiwipete
   , pieces
   )
   where
@@ -99,6 +100,17 @@ data Position = Position
   , halfMoves :: Int
   , fullMoves :: Int
   }
+
+data Move = Move
+  { moveFrom :: Square
+  , moveTo   :: Square
+  , movePromote :: Maybe PieceType
+  } deriving (Eq)
+
+instance Show Move where
+  show (Move from to Nothing)  = showSquare from ++ showSquare to
+  show (Move from to (Just p)) =
+    showSquare from ++ showSquare to ++ [pieceToChar (Piece p Black)]
 
 piecesToBoard :: String -> Maybe Board
 piecesToBoard str = do
@@ -201,6 +213,9 @@ foldNums = foldr combine ""
 
 start :: Position
 start = fromJust $ fenToPos "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
+kiwipete :: Position
+kiwipete = fromJust $ fenToPos "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
 
 pieces :: Board -> [(Square, Piece)]
 pieces b = mapMaybe getPceSq [(f,r) | f <- [minBound .. maxBound],
